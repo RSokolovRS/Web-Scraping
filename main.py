@@ -2,7 +2,6 @@ import json
 import requests
 from fake_headers import Headers
 from bs4 import BeautifulSoup
-from pprint import pprint
 import lxml
 
 
@@ -18,23 +17,30 @@ bs = BeautifulSoup(SOURCE, features='lxml')
 
 articles_list = bs.find_all(class_='vacancy-serp-item__layout')
 
-vacancy_list = []
 
-for article in articles_list:
-    link = article.find('a')['href']
-    salary = article.find('span', class_="bloko-header-section-3")
-    company = article.find('a', class_='bloko-link bloko-link_kind-tertiary').text
-    city = article.find('div',{'data-qa':'vacancy-serp__vacancy-address'}).text
+def sample(date):
+    vacancy_list = []
+    for article in articles_list:
+        link = article.find('a')['href']
+        try: 
+            salary = article.find('span', {'data-qa':'vacancy-serp__vacancy-compensation'}).text
+        except:
+            salary = 'Нет данных!'
+        company = article.find('a', class_='bloko-link bloko-link_kind-tertiary').text
+        city = article.find('div',{'data-qa':'vacancy-serp__vacancy-address'}).text.split(',')[0]
+        vacancy_list.append({
+            'link': link,
+            'salary': salary,
+            'company': company,
+            'city': city
+             })
+    return vacancy_list
 
+def write(file):
+    with open('date.json', 'w', encoding='utf-8') as f:
+        data = json.dump(file, f, ensure_ascii=False, indent=2)
+        return data
 
-    vacancy_list.append({
-        'Зарплата': salary,
-        'Компания': company,
-        'Город': city,
-        'Ссылка': link
-        })
-
-
-
-
-    pprint(vacancy_list)
+if __name__ == '__main__':
+    art = sample(articles_list)
+    write(art)
